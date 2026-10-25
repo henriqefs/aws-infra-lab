@@ -13,7 +13,7 @@ do que estou aprendendo.
 - [x] Conta AWS com MFA no usuário root e alerta de gasto (AWS Budgets)
 - [x] IAM: grupo, usuário de teste e policy dando acesso a um único bucket
 - [x] Testes de acesso permitido e negado, com prints
-- [ ] Credential Report e script Python para auditar usuários do IAM
+- [x] Credential Report e script Python para auditar usuários do IAM
 - [ ] Alarme de CPU no CloudWatch avisando por e-mail
 - [ ] Runbooks (guias curtos de "o que fazer quando...")
 
@@ -50,6 +50,25 @@ as permissões necessárias para o seu trabalho, nada além disso.
 - Dar permissão por grupo é mais fácil de manter do que usuário por usuário.
 - As mensagens de "acesso negado" da AWS dizem qual ação faltou, o que ajuda muito
   a investigar quando alguém diz "não consigo acessar".
+  
+## Revisão de permissões
+
+Com o IAM configurado, fiz uma revisão como se fosse uma rotina de auditoria.
+
+**Como fiz:** gerei o Credential Report do IAM e escrevi um script em Python (boto3),
+executado no CloudShell, que lista usuários sem MFA e chaves de acesso com mais de 90 dias.
+Script: [`scripts/auditoria_iam.py`](scripts/auditoria_iam.py)
+
+**O que encontrei:** o usuário de teste `teste-leitura` tinha acesso ao console sem MFA.
+O usuário root estava correto, com MFA ativo e sem chaves de acesso.
+
+**Correção:** ativei o MFA no `teste-leitura` e rodei o script de novo, com resultado de 0 achados.
+
+![Auditoria sem achados](iam/prints/04-auditoria-zero-achados.png)
+
+**O que aprendi:**
+- O Credential Report só pode ser gerado de novo a cada 4 horas. Para conferir uma correção na hora, consultar a API com um script é mais prático.
+- Acesso ao console sem MFA é um dos achados mais comuns em auditorias de IAM.
 
 ## Evidências
 
@@ -64,6 +83,4 @@ Lista geral de buckets: também negada, já que o usuário só enxerga o que foi
 
 ## Próximos passos
 
-Agora vou fazer uma revisão de permissões de verdade: gerar o Credential Report,
-escrever um script em Python que encontra usuários sem MFA e chaves de acesso antigas,
-e corrigir o que ele apontar. Depois entram o monitoramento com CloudWatch e os runbooks.
+Agora vou montar o monitoramento com CloudWatch (alarme de CPU com aviso por e-mail) e escrever os runbooks.
